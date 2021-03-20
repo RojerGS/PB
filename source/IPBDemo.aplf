@@ -1,0 +1,5 @@
+ r←IPBDemo(dl args);_;ipb
+ ipb←⎕NEW IPB args
+ _←ipb.Start
+ _←⎕DL dl
+ _←ipb.Stop
