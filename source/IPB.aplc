@@ -1,0 +1,71 @@
+:Class IPB 
+
+    ⍝ ⎕UCS 160 ← non-breaking space
+    ⍝ chars ← '█▉▊▋▌▍▎▏'
+    
+    ⍝ defaults contains (start style length)                     
+    :Field Private defaults ← 1 0 20
+    :Field Private tn ← ⍬
+    :Field Private l ← 0
+    :Field Private state ← ''
+    
+    ∇ InitDefault
+        :Access Public
+        :Implements Constructor
+        Init defaults
+    ∇
+
+    ∇ Init options
+        ;start ;style ;length
+        :Access Public
+        :Implements Constructor
+         
+        options ,← defaults↓⍨≢options 
+        (start style length) ← options
+        
+        ⍝ Save the PB length.        
+        l ← length
+        ⍝ Set the PB style.
+        :Select style
+        :Else
+            state ← l⍴'_/¯\'            
+        :EndSelect
+        
+        :If start
+            _← Start
+        :EndIf
+    ∇
+    
+    ∇ r ← Start
+        :Access Public
+        
+        r ← tn≡⍬
+        :If r
+            tn ← {Loop}&⍬
+        :EndIf
+    ∇         
+    
+    ∇ Loop
+        :Repeat
+            Clear
+            state ⌽⍨← 1
+            ⍞← '[',state,']'
+            ⎕DL 0.2
+        :EndRepeat
+    ∇
+    
+    ∇ Clear
+        ⍞← (2+l)/⎕UCS 8 160 8
+    ∇
+    
+    ∇ r ← Stop
+        :Access Public
+        
+        r ← tn≢⍬
+        :If r
+            ⎕TKILL tn
+            tn ← ⍬
+            Clear
+        :EndIf
+    ∇
+:EndClass

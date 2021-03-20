@@ -1,0 +1,28 @@
+:Class DPB
+    ⍝ Definite Progress Bar in Dyalog APL.
+    
+    :Field Private total ← ⍬
+    :Field Private progress ← ⍬
+    :Field Private defaults ← 100    ⍝ default set of options.
+    
+    ∇ InitDefault
+        :Access Public
+        :Implements Constructor
+        Init defaults
+    ∇
+    
+    ∇ Init length
+        :Access Public
+        :Implements Constructor
+        
+        total ← length
+        progress ← 0        
+    ∇
+    
+    ∇ dpb ← Start
+    
+    ∇
+:EndClass
+
+
+
