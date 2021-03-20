@@ -1,13 +1,17 @@
-:Class IPB 
+:Class IPB
+    ⍝ Class to use customisable indeterminate progress bars. 
 
     ⍝ ⎕UCS 160 ← non-breaking space
     ⍝ chars ← '█▉▊▋▌▍▎▏'
     
     ⍝ defaults contains (start style length)                     
-    :Field Private defaults ← 1 0 20
+    :Field Private defaults ← ('start' 0)('style' 0)('length' 20)('dt' 0.2)('framed' 1)('prefix' '')('post' '')
     :Field Private tn ← ⍬
     :Field Private l ← 0
-    :Field Private state ← ''
+    :Field Private dt ← 0
+    :Field Private states ← ''
+    :Field Private prefix ← ''
+    :Field Private post ← ''
     
     ∇ InitDefault
         :Access Public
@@ -16,22 +20,42 @@
     ∇
 
     ∇ Init options
-        ;start ;style ;length
+        ;keys ;start ;style ;length
+        ;V ;On
         :Access Public
         :Implements Constructor
          
-        options ,← defaults↓⍨≢options 
-        (start style length) ← options
+        options ,← defaults
+        keys ← ¯1⎕C⊣/↑options
+        V ← {⊃⌽⊃options[keys⍳⊂⍵]}
+        On ← ((,1)1∨.≡⊢)
         
-        ⍝ Save the PB length.        
-        l ← length
+        ⍝ Save important values.
+        l ← 1⌈V'length'
+        dt ← 0.001⌈V'dt'          
+        prefix ← V'prefix'
+        post ← V'post'
+
         ⍝ Set the PB style.
-        :Select style
+        :Select V 'style'
+        :Case 1
+            :If l=1
+                states ← ,(,'.')
+            :Else
+                states ← ↓' .'[⍉2⊥⍣¯1⊢¯1↓(¯1∘↓,⌽)¯1↓∊(⍪,{0,⍨2+/⍵})2*⌽⍳l]
+            :EndIf
+        :Case 2
+            states ← ⌽'█▉▊▋▌▍▎▏'
+            states ← {l↑states[⍵|⍨≢states],⍨(⌊⍵÷≢states)/⊃⌽states}¨(¯1∘↓,⌽)⍳l×≢states
         :Else
-            state ← l⍴'_/¯\'            
+            states ← (⍳∘≢l∘⍴⍤⌽¨⊂) '_/¯\'
         :EndSelect
         
-        :If start
+        :If On V'framed'
+            states ← ('[',⊢,']'⍨)¨states
+        :EndIf
+        
+        :If On V'start'
             _← Start
         :EndIf
     ∇
@@ -41,6 +65,7 @@
         
         r ← tn≡⍬
         :If r
+            ⍞← prefix
             tn ← {Loop}&⍬
         :EndIf
     ∇         
@@ -48,14 +73,14 @@
     ∇ Loop
         :Repeat
             Clear
-            state ⌽⍨← 1
-            ⍞← '[',state,']'
-            ⎕DL 0.2
+            states ⌽⍨← 1
+            ⍞← ⊃states
+            ⎕DL dt
         :EndRepeat
     ∇
     
     ∇ Clear
-        ⍞← (2+l)/⎕UCS 8 160 8
+        ⍞← (2+l+≢prefix)/⎕UCS 8 160 8
     ∇
     
     ∇ r ← Stop
@@ -66,6 +91,7 @@
             ⎕TKILL tn
             tn ← ⍬
             Clear
+            ⍞← post
         :EndIf
     ∇
 :EndClass
