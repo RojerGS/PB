@@ -1,11 +1,12 @@
 :Class DPB
-    ⍝ Definite Progress Bar in Dyalog APL.
+    ⍝ Determinate Progress Bar in Dyalog APL.
     
-    :Field Private defaults ← ('style' 0)('total' 100)('length' 20)('decimals' 0)
+    :Field Private defaults ← ('style' 0)('total' 100)('length' 20)('decimals' 0)('empty' ' ')
     :Field Private total ← ¯1
     :Field Private ticks ← ¯1
     :Field Private length ← ¯1
     :Field Private states ← ⍬
+    :Field Private empty ← ''
     :Field Private intervals ← ⍬
     :Field Private formatter ← ¯1 ¯1
     :Field Private totalWidth ← 0
@@ -19,7 +20,8 @@
     
     ∇ Init options
         ⍝ Customisable constructor.
-        ;keys ;val ;char ;V
+        ;keys ;style
+        ;V ;I ;F ;P
         :Access Public
         :Implements Constructor
         
@@ -35,14 +37,25 @@
 
         ⍝ Length of the interior of the progress bar.        
         length ← 1⌈V'length'
-          
+        
+        ⍝ Character to use in the empty spaces of the progress bar.                    
+        empty ← V'empty'                                           
+
+        F ← ('[',']',⍨⊢)    ⍝ Frame the states with [ ... ]
+        ⍝ Build a progression with successively more chars `⍵` and less `empty`s
+        P ← {(⍵@(⍸0⍪∘.≥⍨⍳length))empty⍴⍨1 0+length}
         ⍝ Consecutive printable states.
-        :Select val ← V'style'
-        :CaseList 0 1 2
-            char ← '#>█'[val]
-            states ← ↓'[',']',⍨(char@(⍸0⍪∘.≥⍨⍳length))' '⍴⍨1 0+length
+        :Select ⊃style ← V'style'
+        :CaseList 0 1 2 3 4 5
+            states ← ↓F P'#>█@X⎕'[style]
+        :Case 10     
+            states ← ↓F P⊃⌽style
+        :CaseList 20 21 22
+            ⍝ Build the state strings incrementally as a progression of the given characters.
+            I ← {i ← ⍺,⍨(≢⍺)⌿¯1↑⍵ ⋄ i⍪⍨⍵,empty}⍣length⍨
+            states ← ↓F I⍪(20|style)⊃'▏▎▍▌▋▊▉█' '▎▌▊█' '▌█'
         :Else
-            states ← ↓'[',']',⍨('#'@(⍸0⍪∘.≥⍨⍳length))' '⍴⍨1 0+length
+            states ← ↓F P'#'
         :EndSelect
         ⍝ Prepare to use ⍸ to find the state that should be printed.
         intervals ← (¯1+≢states)÷⍨⍳≢states
@@ -53,9 +66,8 @@
         totalWidth ← (3++/formatter)+≢⊃states
     ∇
     
-    ∇ Print
+    ∇ Print ;p
         ⍝ Print the current bar state.
-        ;p
         :Access Public
                       
         Clear
@@ -73,7 +85,8 @@
         ⍝ Increment the current bar progress by `t` ticks and print the new state.
         ⍝ Returns the total progress of the bar so far.
         :Access Public
-        ts ← Print⊢Tick t
+        ts ← Tick t
+        Print
     ∇
     
     ∇ ts ← Set t
