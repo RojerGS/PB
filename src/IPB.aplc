@@ -1,17 +1,13 @@
 :Class IPB
-    ⍝ Class to use customisable indeterminate progress bars. 
-
-    ⍝ ⎕UCS 160 ← non-breaking space
-    ⍝ chars ← '█▉▊▋▌▍▎▏'
-    
-    ⍝ defaults contains (start style length)                     
-    :Field Private defaults ← ('start' 0)('style' 0)('length' 20)('dt' 0.2)('framed' 1)('prefix' '')('post' '')
+    ⍝ Customisable indeterminate progress bars. 
+                        
+    :Field Private defaults ← ('start' 0)('style' 0)('length' 20)('dt' 0.2)('framed' 1)('prefix' '')('postfix' '')
     :Field Private tn ← ⍬
     :Field Private l ← 0
     :Field Private dt ← 0
     :Field Private states ← ''
     :Field Private prefix ← ''
-    :Field Private post ← ''
+    :Field Private postfix ← ''
     
     ∇ InitDefault
         :Access Public
@@ -34,10 +30,10 @@
         l ← 1⌈V'length'
         dt ← 0.001⌈V'dt'          
         prefix ← V'prefix'
-        post ← V'post'
+        postfix ← V'postfix'
 
         ⍝ Set the PB style.
-        :Select V 'style'
+        :Select V'style'
         :Case 1
             :If l=1
                 states ← ,(,'.')
@@ -64,8 +60,7 @@
         :Access Public
         
         r ← tn≡⍬
-        :If r
-            ⍞← prefix
+        :If r        
             tn ← {Loop}&⍬
         :EndIf
     ∇         
@@ -74,13 +69,13 @@
         :Repeat
             Clear
             states ⌽⍨← 1
-            ⍞← ⊃states
+            ⍞← prefix,postfix,⍨⊃states
             ⎕DL dt
         :EndRepeat
     ∇
     
     ∇ Clear
-        ⍞← (2+l+≢prefix)/⎕UCS 8 160 8
+        ⍞← (2+l+prefix+⍥≢postfix)/⎕UCS 8 160 8
     ∇
     
     ∇ r ← Stop
@@ -90,8 +85,7 @@
         :If r
             ⎕TKILL tn
             tn ← ⍬
-            Clear
-            ⍞← post
+            Clear   
         :EndIf
     ∇
 :EndClass
