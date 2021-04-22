@@ -1,0 +1,7 @@
+ DPBDemo args;_
+ d←⎕NEW DPB args
+ :For _ :In ⍳100
+     _←d.Tick 1
+     d.Print
+     _←⎕DL 0.1
+ :EndFor
