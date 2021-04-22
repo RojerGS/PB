@@ -1,28 +1,108 @@
 :Class DPB
     ⍝ Definite Progress Bar in Dyalog APL.
     
-    :Field Private total ← ⍬
-    :Field Private progress ← ⍬
-    :Field Private defaults ← 100    ⍝ default set of options.
+    :Field Private defaults ← ('style' 0)('total' 100)('length' 20)('decimals' 0)
+    :Field Private total ← ¯1
+    :Field Private ticks ← ¯1
+    :Field Private length ← ¯1
+    :Field Private states ← ⍬
+    :Field Private intervals ← ⍬
+    :Field Private formatter ← ¯1 ¯1
+    :Field Private totalWidth ← 0
     
     ∇ InitDefault
+        ⍝ Default constructor that uses all the defaults.
         :Access Public
         :Implements Constructor
         Init defaults
     ∇
     
-    ∇ Init length
+    ∇ Init options
+        ⍝ Customisable constructor.
+        ;keys ;val ;char ;V
         :Access Public
         :Implements Constructor
         
-        total ← length
-        progress ← 0        
+        ⍝ Add the default values and create a function to read the Values of the options.
+        options ,← defaults
+        keys ← ¯1⎕C⊣/↑options
+        V ← {⊃⌽⊃options[keys⍳⊂⍵]}
+        
+        ⍝ Total ticks of the progress bar.
+        total ← 1⌈V'total'
+        ⍝ Ticks so far.
+        ticks ← 0
+
+        ⍝ Length of the interior of the progress bar.        
+        length ← 1⌈V'length'
+          
+        ⍝ Consecutive printable states.
+        :Select val ← V'style'
+        :CaseList 0 1 2
+            char ← '#>█'[val]
+            states ← ↓'[',']',⍨(char@(⍸0⍪∘.≥⍨⍳length))' '⍴⍨1 0+length
+        :Else
+            states ← ↓'[',']',⍨('#'@(⍸0⍪∘.≥⍨⍳length))' '⍴⍨1 0+length
+        :EndSelect
+        ⍝ Prepare to use ⍸ to find the state that should be printed.
+        intervals ← (¯1+≢states)÷⍨⍳≢states
+        
+        ⍝ Formatting for the percentage of progress completion.
+        formatter ← (⊢,⍨3+⊢+×)0⌈V'decimals'
+        
+        totalWidth ← (3++/formatter)+≢⊃states
     ∇
     
-    ∇ dpb ← Start
+    ∇ Print
+        ⍝ Print the current bar state.
+        ;p
+        :Access Public
+                      
+        Clear
+        ⍞← (⊃states[intervals⍸p]),⍨'[','%]',⍨formatter⍕100×p←0⌈1⌊ticks÷total
+    ∇
     
+    ∇ ts ← Tick t
+        ⍝ Increment the current bar progress by `t` ticks.
+        ⍝ Returns the total progress of the bar so far.
+        :Access Public
+        ts ← ticks ← total⌊ticks + t      
+    ∇       
+    
+    ∇ ts ← TickAndPrint t
+        ⍝ Increment the current bar progress by `t` ticks and print the new state.
+        ⍝ Returns the total progress of the bar so far.
+        :Access Public
+        ts ← Print⊢Tick t
+    ∇
+    
+    ∇ ts ← Set t
+        ⍝ Set the current tick progress to `t`.
+        :Access Public
+        ts ← ticks ← 0⌈total⌊t
+    ∇
+    
+    ∇ ts ← SetP p
+        ⍝ Set the current progress to the given percentage (in the [0, 1] interval).
+        ⍝ Returns the current progress in terms of ticks.
+        :Access Public
+        ts ← ticks ← total×0⌈1⌊p
+    ∇
+    
+    ∇ ts ← Query
+        ⍝ Query the current progress in terms of ticks.
+        :Access Public
+        ts ← ticks
+    ∇
+    
+    ∇ p ← QueryP
+        ⍝ Query the current percentual progress.
+        :Access Public
+        p ← ticks÷total
+    ∇
+    
+    ∇ Clear
+        ⍝ Uses backspaces and non-breaking spaces to clear the current line.
+        ⍞← totalWidth/⎕UCS 8 160 8
     ∇
 :EndClass
-
-
-
